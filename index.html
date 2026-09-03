@@ -1,20 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><style>#matrix {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1; /* Keeps it strictly in the background */
-  background-color: #000;
-  
-</style>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Matrix Notes</title>
+
+  <!-- PWA & Mobile Web App Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Matrix Notes">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background-color: #000;
+      color: #fff;
+    }
+
+    /* Keep matrix canvas in the background */
+    #matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Foreground layout container */
+    .app-layout {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(15, 15, 15, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .notes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Note Preview Cards */
+    .note-item {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .note-item:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .note-item-title {
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .note-item-preview {
+      color: #aaa;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Editor Styling */
+    .note-editor {
+      flex: 1;
+      background: rgba(15, 15, 15, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .editor-header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    #note-title, #note-body {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      outline: none;
+      font-family: inherit;
+    }
+
+    #note-title {
+      flex: 1;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    #note-body {
+      flex: 1;
+      font-size: 16px;
+      resize: none;
+    }
+
+    /* Buttons */
+    .app-button, .save-button, .delete-button {
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .app-button {
+      background-color: rgba(223, 2, 2, 0.7);
+    }
+
+    .app-button:hover {
+      background-color: rgba(223, 2, 2, 0.9);
+    }
+
+    .save-button {
+      background-color: rgba(40, 160, 80, 0.8);
+    }
+
+    .save-button:hover {
+      background-color: rgba(40, 160, 80, 1);
+    }
+
+    .delete-button {
+      background-color: rgba(220, 50, 50, 0.8);
+    }
+
+    .delete-button:hover {
+      background-color: rgba(220, 50, 50, 1);
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 600px) {
+      .app-layout {
+        flex-direction: column;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+      }
+      
+      .sidebar {
+        width: 100%;
+        max-height: 180px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Canvas Matrix Background -->
   <canvas id="matrix"></canvas>
-    <script src="script.js"></script>
+
+  <!-- App Layout -->
+  <div class="app-layout">
+    <!-- Sidebar: Saved Notes -->
+    <aside class="sidebar">
+      <button id="new-notes-btn" class="app-button">+ New Note</button>
+      <div id="notes-list" class="notes-list"></div>
+    </aside>
+
+    <!-- Main Editor -->
+    <main id="editor" class="note-editor">
+      <div class="editor-header">
+        <input type="text" id="note-title" placeholder="Title" />
+        <button id="save-note-btn" class="save-button">Save</button>
+        <button id="delete-note-btn" class="delete-button">Delete</button>
+      </div>
+      <textarea id="note-body" placeholder="Start typing..."></textarea>
+    </main>
+  </div>
+
+  <!-- Main JavaScript File -->
+  <script src="script.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker Registered!', reg))
+          .catch((err) => console.log('Service Worker Failed:', err));
+      });
+    }
+  </script>
 </body>
+</html>
