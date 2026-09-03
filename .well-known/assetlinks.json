@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.meykaigardner777_source.twa",
+        "sha256_cert_fingerprints": ["7D:17:02:A1:A9:0E:3F:AC:99:CE:E8:BF:A5:78:F6:91:DF:ED:BF:91:FF:69:A1:8E:DA:30:35:98:5A:81:00:3B"]
+      }
+    }]
