@@ -91,7 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="note-item-title">${escapeHTML(note.title) || 'Untitled Note'}</div>
         <div class="note-item-preview">${escapeHTML(note.body) || 'Empty note...'}</div>
       `;
-      item.addEventListener('click', () => openNote(note.id));
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        openNote(note.id);
+      });
       notesList.appendChild(item);
     });
   }
@@ -164,10 +167,27 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNotesList();
   }
 
-  // Bind Event Listeners
-  if (newNoteBtn) newNoteBtn.addEventListener('click', createNewNote);
-  if (saveNoteBtn) saveNoteBtn.addEventListener('click', saveNote);
-  if (deleteNoteBtn) deleteNoteBtn.addEventListener('click', deleteNote);
+  // Bind Event Listeners cleanly without resetting canvas
+  if (newNoteBtn) {
+    newNoteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      createNewNote();
+    });
+  }
+
+  if (saveNoteBtn) {
+    saveNoteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveNote();
+    });
+  }
+
+  if (deleteNoteBtn) {
+    deleteNoteBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteNote();
+    });
+  }
 
   // Initial render
   renderNotesList();
