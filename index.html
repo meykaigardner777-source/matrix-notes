@@ -26,7 +26,7 @@
       color: #fff;
     }
 
-    /* Keep matrix canvas in the background */
+    /* Matrix canvas background layer */
     #matrix {
       position: fixed;
       top: 0;
@@ -36,7 +36,7 @@
       z-index: 1;
     }
 
-    /* Foreground layout container */
+    /* App container layer */
     .app-layout {
       position: fixed;
       top: 20px;
@@ -70,14 +70,14 @@
       flex: 1;
     }
 
-    /* Note Preview Cards */
+    /* Note Cards */
     .note-item {
       padding: 10px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, border-color 0.2s;
     }
 
     .note-item:hover {
@@ -177,7 +177,7 @@
       background-color: rgba(220, 50, 50, 1);
     }
 
-    /* Responsive Layout */
+    /* Mobile Responsive Layout */
     @media (max-width: 600px) {
       .app-layout {
         flex-direction: column;
@@ -200,9 +200,9 @@
 
   <!-- App Layout -->
   <div class="app-layout">
-    <!-- Sidebar: Saved Notes -->
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <button id="new-notes-btn" class="app-button">+ New Note</button>
+      <button id="new-note-btn" class="app-button">+ New Note</button>
       <div id="notes-list" class="notes-list"></div>
     </aside>
 
@@ -217,7 +217,7 @@
     </main>
   </div>
 
-  <!-- Main JavaScript File -->
+  <!-- JavaScript File -->
   <script src="script.js"></script>
 
   <!-- Service Worker Registration -->
