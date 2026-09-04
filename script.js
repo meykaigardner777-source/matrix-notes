@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // MATRIX CANVAS ANIMATION
   // ==========================================
- const canvas = document.getElementById('matrix');
+  const canvas = document.getElementById('matrix');
   if (canvas) {
     const ctx = canvas.getContext('2d');
 
@@ -17,48 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let columns = Math.floor(canvas.width / fontSize);
     let drops = Array(columns).fill(1);
 
-    // 1. OFFSCREEN SPRITE CANVAS (Pre-renders all text characters once)
-    const spriteCanvas = document.createElement('canvas');
-    const spriteCtx = spriteCanvas.getContext('2d');
-    spriteCanvas.width = fontSize * chars.length;
-    spriteCanvas.height = fontSize;
-    spriteCtx.font = fontSize + 'px monospace';
-    spriteCtx.fillStyle = '#aaaaaa';
-    spriteCtx.textBaseline = 'top';
-
-    const charMap = {};
-    for (let i = 0; i < chars.length; i++) {
-      const char = chars.charAt(i);
-      const x = i * fontSize;
-      spriteCtx.fillText(char, x, 0);
-      charMap[char] = x;
-    }
-
-    // 2. TIMED ANIMATION LOOP (Replaces setInterval to run smoothly without lag)
-    let lastTime = 0;
-    const fps = 24; 
-    const interval = 1000 / fps;
-
-    function drawMatrix(currentTime) {
-      requestAnimationFrame(drawMatrix);
-
-      const delta = currentTime - lastTime;
-      if (delta < interval) return;
-      lastTime = currentTime - (delta % interval);
-
+    function drawMatrix() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      ctx.fillStyle = '#aaaaaa';
+      ctx.font = fontSize + 'px monospace';
+
       for (let i = 0; i < drops.length; i++) {
         const text = chars.charAt(Math.floor(Math.random() * chars.length));
-        const spriteX = charMap[text];
-
-        // Renders cached pixels instead of slow text drawing
-        ctx.drawImage(
-          spriteCanvas,
-          spriteX, 0, fontSize, fontSize,
-          i * fontSize, drops[i] * fontSize, fontSize, fontSize
-        );
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
@@ -66,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
         drops[i]++;
       }
     }
-   requestAnimationFrame(drawMatrix);
-  }
+
+    setInterval(drawMatrix, 70);
 
    let resizeTimer;
   window.addEventListener('resize', () => {
