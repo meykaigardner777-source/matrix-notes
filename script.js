@@ -35,13 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    setInterval(drawMatrix, 33);
+    setInterval(drawMatrix, 70);
 
-    window.addEventListener('resize', () => {
+   let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
       resizeCanvas();
       columns = Math.floor(canvas.width / fontSize);
       drops = Array(columns).fill(1);
-    });
+    }, 200);
+  });
   }
 
   // ==========================================
