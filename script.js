@@ -11,18 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let columns = 0;
     let drops = [];
 
-    // Pre-render characters to an offscreen canvas for extreme performance
+    // Pre-render characters to an offscreen canvas
     const charCache = document.createElement('canvas');
     const charCtx = charCache.getContext('2d');
     const charMap = new Map();
 
     function prepareCharCache() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const scaledSize = fontSize * dpr;
-      
+      const scaledSize = fontSize;
       charCache.width = scaledSize * chars.length;
       charCache.height = scaledSize;
       
+      if (!charCtx) return;
+
       charCtx.fillStyle = '#aaaaaa';
       charCtx.font = `${scaledSize}px monospace`;
       charCtx.textBaseline = 'top';
@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
     prepareCharCache();
 
     function resizeCanvas() {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const width = window.innerWidth || 800;
+      const height = window.innerHeight || 600;
       canvas.width = width;
       canvas.height = height;
       
-      columns = Math.floor(width / fontSize);
+      columns = Math.max(1, Math.floor(width / fontSize));
       drops = new Array(columns).fill(1);
 
       ctx.fillStyle = '#000000';
@@ -61,23 +61,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (elapsed < fpsInterval) return;
       lastTime = timestamp - (elapsed % fpsInterval);
 
-      // Fast semi-transparent fade overlay
       ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const charWidth = fontSize;
-      const charHeight = fontSize;
 
       for (let i = 0; i < drops.length; i++) {
         const char = chars.charAt(Math.floor(Math.random() * chars.length));
         const sourceX = charMap.get(char);
 
-        // Blit pre-rendered character directly (Zero font layout processing)
         if (sourceX !== undefined) {
           ctx.drawImage(
             charCache,
-            sourceX, 0, charHeight * 2, charHeight * 2,
-            i * fontSize, drops[i] * fontSize, charWidth, charHeight
+            sourceX, 0, fontSize, fontSize,
+            i * fontSize, drops[i] * fontSize, fontSize, fontSize
           );
         }
 
