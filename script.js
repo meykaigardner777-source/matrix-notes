@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let columns = 0;
     let drops = [];
 
-    // Pre-render characters to an offscreen canvas
     const charCache = document.createElement('canvas');
     const charCtx = charCache.getContext('2d');
     const charMap = new Map();
@@ -50,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     resizeCanvas();
 
-    // 30 FPS Frame Throttling
     let lastTime = 0;
     const fpsInterval = 1000 / 30;
 
@@ -218,23 +216,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // PEER-TO-PEER SYNC LOGIC
+  // RELIABLE PEER-TO-PEER SYNC LOGIC
   // ==========================================
   let peer = null;
   let activeConnection = null;
   const localPeerId = 'matrix-' + Math.floor(Math.random() * 899999 + 100000);
 
+  function updateSyncUI(status, color) {
+    if (syncNoteBtn) {
+      syncNoteBtn.innerText = status;
+      syncNoteBtn.style.backgroundColor = color;
+    }
+  }
+
   function initPeer() {
     if (typeof Peer !== 'undefined' && !peer) {
       try {
         peer = new Peer(localPeerId, {
+          debug: 1,
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
               { urls: 'stun:stun1.l.google.com:19302' },
-              { urls: 'stun:stun2.l.google.com:19302' }
+              { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' }
             ]
           }
+        });
+
+        peer.on('open', () => {
+          console.log('Peer initialized with ID:', localPeerId);
         });
 
         peer.on('connection', (conn) => {
@@ -244,6 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         peer.on('error', (err) => {
           console.error('PeerJS Error:', err);
+          updateSyncUI('Sync Fail', 'rgba(200, 50, 50, 0.85)');
+          setTimeout(() => updateSyncUI('Sync', 'rgba(0, 120, 215, 0.85)'), 3000);
         });
       } catch (err) {
         console.error('Failed to initialize PeerJS:', err);
@@ -255,26 +268,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupConnectionHandlers(conn) {
     conn.on('open', () => {
-      if (syncNoteBtn) {
-        syncNoteBtn.innerText = 'Connected';
-        syncNoteBtn.style.backgroundColor = 'rgba(40, 160, 80, 0.85)';
-      }
-      alert('Successfully paired and connected!');
-      broadcastSync();
+      updateSyncUI('Connected', 'rgba(40, 160, 80, 0.85)');
+      
+      // Force bi-directional note sync on open
+      setTimeout(() => {
+        broadcastSync();
+      }, 300);
     });
 
-    conn.on('data', (incomingNotes) => {
-      if (Array.isArray(incomingNotes)) {
-        mergeIncomingNotes(incomingNotes);
+    conn.on('data', (data) => {
+      if (data && data.type === 'SYNC_NOTES' && Array.isArray(data.payload)) {
+        mergeIncomingNotes(data.payload);
+      } else if (Array.isArray(data)) {
+        mergeIncomingNotes(data);
       }
     });
 
     conn.on('close', () => {
-      if (syncNoteBtn) {
-        syncNoteBtn.innerText = 'Sync';
-        syncNoteBtn.style.backgroundColor = 'rgba(0, 120, 215, 0.85)';
-      }
+      updateSyncUI('Sync', 'rgba(0, 120, 215, 0.85)');
       activeConnection = null;
+    });
+
+    conn.on('error', (err) => {
+      console.error('Connection error:', err);
+      updateSyncUI('Sync', 'rgba(0, 120, 215, 0.85)');
     });
   }
 
@@ -282,18 +299,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!peer) initPeer();
 
     if (!peer) {
-      alert('Sync service offline or blocked by browser settings.');
+      alert('Sync service unavailable. Check your internet connection or browser settings.');
       return;
     }
 
     if (activeConnection && activeConnection.open) {
-      alert(`Already connected!\nYour Device Code: ${localPeerId}`);
+      alert(`Connected!\nDevice Code: ${localPeerId}`);
       return;
     }
 
-    const partnerCode = prompt(`Your Device Code: ${localPeerId}\n\nEnter Partner Code to Sync:`);
-    if (partnerCode && partnerCode.trim() !== '') {
-      const conn = peer.connect(partnerCode.trim(), { reliable: true });
+    const input = prompt(`Your Code: ${localPeerId}\n\nEnter Partner Code:`);
+    if (input && input.trim() !== '') {
+      let partnerCode = input.trim();
+      if (!partnerCode.startsWith('matrix-') && !isNaN(partnerCode)) {
+        partnerCode = 'matrix-' + partnerCode;
+      }
+
+      updateSyncUI('Connecting...', 'rgba(215, 120, 0, 0.85)');
+      
+      const conn = peer.connect(partnerCode, {
+        reliable: true,
+        serialization: 'json'
+      });
+
       activeConnection = conn;
       setupConnectionHandlers(conn);
     }
@@ -330,7 +358,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function broadcastSync() {
     if (activeConnection && activeConnection.open) {
-      activeConnection.send(notes);
+      activeConnection.send({
+        type: 'SYNC_NOTES',
+        payload: notes
+      });
     }
   }
 
