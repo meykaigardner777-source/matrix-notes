@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const newNoteBtn = document.getElementById('new-note-btn');
   const saveNoteBtn = document.getElementById('save-note-btn');
   const deleteNoteBtn = document.getElementById('delete-note-btn');
+  const syncNoteBtn = document.getElementById('sync-note-btn');
   const noteTitle = document.getElementById('note-title');
   const noteBody = document.getElementById('note-body');
   const notesList = document.getElementById('notes-list');
@@ -136,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteData = {
       id: currentNoteId,
       title: titleVal,
-      body: bodyVal
+      body: bodyVal,
+      updatedAt: Date.now()
     };
 
     if (existingIndex >= 0) {
@@ -147,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     localStorage.setItem('my_notes', JSON.stringify(notes));
     renderNotesList();
+    broadcastSync();
   }
 
   // Delete current note
@@ -165,29 +168,103 @@ document.addEventListener('DOMContentLoaded', () => {
     if (noteBody) noteBody.value = '';
 
     renderNotesList();
+    broadcastSync();
   }
 
-  // Bind Event Listeners cleanly without resetting canvas
-  if (newNoteBtn) {
-    newNoteBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      createNewNote();
+  // ==========================================
+  // PEER-TO-PEER SYNC LOGIC
+  // ==========================================
+  let peer = null;
+  let activeConnection = null;
+  const localPeerId = 'matrix-' + Math.floor(1000 + Math.random() * 9000);
+
+  if (typeof Peer !== 'undefined') {
+    peer = new Peer(localPeerId);
+
+    peer.on('connection', (conn) => {
+      activeConnection = conn;
+      setupConnectionHandlers(conn);
     });
   }
 
-  if (saveNoteBtn) {
-    saveNoteBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      saveNote();
+  function setupConnectionHandlers(conn) {
+    conn.on('open', () => {
+      if (syncNoteBtn) {
+        syncNoteBtn.innerText = 'Connected';
+        syncNoteBtn.style.backgroundColor = 'rgba(40, 160, 80, 0.85)';
+      }
+      broadcastSync();
+    });
+
+    conn.on('data', (incomingNotes) => {
+      if (Array.isArray(incomingNotes)) {
+        mergeIncomingNotes(incomingNotes);
+      }
+    });
+
+    conn.on('close', () => {
+      if (syncNoteBtn) {
+        syncNoteBtn.innerText = 'Sync';
+        syncNoteBtn.style.backgroundColor = 'rgba(0, 120, 215, 0.85)';
+      }
+      activeConnection = null;
     });
   }
 
-  if (deleteNoteBtn) {
-    deleteNoteBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      deleteNote();
-    });
+  function handleSyncClick() {
+    if (activeConnection && activeConnection.open) {
+      alert(`Connected to partner!\nYour Code: ${localPeerId}`);
+      return;
+    }
+
+    const partnerCode = prompt(`Your Device Code: ${localPeerId}\n\nEnter Partner Code to Sync:`);
+    if (partnerCode && partnerCode.trim() !== '' && peer) {
+      const conn = peer.connect(partnerCode.trim());
+      activeConnection = conn;
+      setupConnectionHandlers(conn);
+    }
   }
+
+  function mergeIncomingNotes(remoteNotes) {
+    let updated = false;
+
+    remoteNotes.forEach((rNote) => {
+      const lIndex = notes.findIndex((n) => n.id === rNote.id);
+      if (lIndex === -1) {
+        notes.push(rNote);
+        updated = true;
+      } else {
+        const localTime = notes[lIndex].updatedAt || 0;
+        const remoteTime = rNote.updatedAt || 0;
+        if (remoteTime > localTime) {
+          notes[lIndex] = rNote;
+          updated = true;
+        }
+      }
+    });
+
+    if (updated) {
+      notes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      localStorage.setItem('my_notes', JSON.stringify(notes));
+      renderNotesList();
+
+      if (currentNoteId) {
+        openNote(currentNoteId);
+      }
+    }
+  }
+
+  function broadcastSync() {
+    if (activeConnection && activeConnection.open) {
+      activeConnection.send(notes);
+    }
+  }
+
+  // Event Listeners
+  if (newNoteBtn) newNoteBtn.addEventListener('click', (e) => { e.preventDefault(); createNewNote(); });
+  if (saveNoteBtn) saveNoteBtn.addEventListener('click', (e) => { e.preventDefault(); saveNote(); });
+  if (deleteNoteBtn) deleteNoteBtn.addEventListener('click', (e) => { e.preventDefault(); deleteNote(); });
+  if (syncNoteBtn) syncNoteBtn.addEventListener('click', (e) => { e.preventDefault(); handleSyncClick(); });
 
   // Initial render
   renderNotesList();
