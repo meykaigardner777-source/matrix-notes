@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matrix-notes-v4';
+const CACHE_NAME = 'matrix-notes-v5';
 const ASSETS = [
   './',
   './index.html',
