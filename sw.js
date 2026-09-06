@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matrix-notes-v2'; // Incremented version to clear old cached code
+const CACHE_NAME = 'matrix-notes-v3'; // Bumping to v3 forces the updated script.js to load
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// Activate Event: Clear old cache versions automatically
+// Activate Event: Delete old cache versions (v1, v2) automatically
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -30,9 +30,8 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Fetch Event: Network-first strategy for index/script, fallback to cache offline
+// Fetch Event: Network-first for app files, cache-first fallback for static CDN assets
 self.addEventListener('fetch', (e) => {
-  // Always try network first for local app files so GitHub updates appear immediately
   if (e.request.url.includes('index.html') || e.request.url.includes('script.js')) {
     e.respondWith(
       fetch(e.request)
@@ -46,7 +45,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Cache-first fallback for static assets & external CDN libraries
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       return cachedResponse || fetch(e.request);
