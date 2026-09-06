@@ -166,16 +166,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // PEER-TO-PEER SYNC LOGIC
+  // PEER-TO-PEER SYNC LOGIC (WITH STUN SERVERS)
   // ==========================================
   let peer = null;
   let activeConnection = null;
-  const localPeerId = 'matrix-' + Math.floor(1000 + Math.random() * 9000);
+  // Generate unique ID per device session
+  const localPeerId = 'matrix-' + Math.floor(Math.random() * 899999 + 100000);
 
   function initPeer() {
     if (typeof Peer !== 'undefined' && !peer) {
       try {
-        peer = new Peer(localPeerId);
+        // Pass Google STUN Servers to bypass local network/firewall NAT restrictions
+        peer = new Peer(localPeerId, {
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+          }
+        });
+
+        peer.on('open', (id) => {
+          console.log('Peer Registered with ID:', id);
+        });
 
         peer.on('connection', (conn) => {
           activeConnection = conn;
@@ -184,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         peer.on('error', (err) => {
           console.error('PeerJS Error:', err);
+          alert('Sync Connection Error: ' + err.type);
         });
       } catch (err) {
         console.error('Failed to initialize PeerJS:', err);
@@ -191,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Attempt initial peer connection setup
   initPeer();
 
   function setupConnectionHandlers(conn) {
@@ -200,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncNoteBtn.innerText = 'Connected';
         syncNoteBtn.style.backgroundColor = 'rgba(40, 160, 80, 0.85)';
       }
+      alert('Successfully paired and connected!');
       broadcastSync();
     });
 
@@ -219,24 +234,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleSyncClick() {
-    // If PeerJS isn't loaded yet, try initializing again
-    if (!peer) {
-      initPeer();
-    }
+    if (!peer) initPeer();
 
     if (!peer) {
-      alert('Sync service library is currently offline or blocked by browser settings. Please check network connection.');
+      alert('Sync service offline or blocked by browser settings.');
       return;
     }
 
     if (activeConnection && activeConnection.open) {
-      alert(`Connected to partner!\nYour Code: ${localPeerId}`);
+      alert(`Already connected!\nYour Device Code: ${localPeerId}`);
       return;
     }
 
     const partnerCode = prompt(`Your Device Code: ${localPeerId}\n\nEnter Partner Code to Sync:`);
     if (partnerCode && partnerCode.trim() !== '') {
-      const conn = peer.connect(partnerCode.trim());
+      const conn = peer.connect(partnerCode.trim(), { reliable: true });
       activeConnection = conn;
       setupConnectionHandlers(conn);
     }
@@ -283,6 +295,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (deleteNoteBtn) deleteNoteBtn.addEventListener('click', (e) => { e.preventDefault(); deleteNote(); });
   if (syncNoteBtn) syncNoteBtn.addEventListener('click', (e) => { e.preventDefault(); handleSyncClick(); });
 
-  // Initial render
   renderNotesList();
 });
