@@ -83,10 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     requestAnimationFrame(drawMatrix);
 
-    let resizeTimeout;
+    let resizeTimeout = null;
     window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(resizeCanvas, 150);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        resizeCanvas();
+      }, 150);
     }, { passive: true });
   }
 
@@ -244,10 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
-        peer.on('open', () => {
-          console.log('Peer initialized with ID:', localPeerId);
-        });
-
         peer.on('connection', (conn) => {
           activeConnection = conn;
           setupConnectionHandlers(conn);
@@ -269,8 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupConnectionHandlers(conn) {
     conn.on('open', () => {
       updateSyncUI('Connected', 'rgba(40, 160, 80, 0.85)');
-      
-      // Force bi-directional note sync on open
       setTimeout(() => {
         broadcastSync();
       }, 300);
@@ -299,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!peer) initPeer();
 
     if (!peer) {
-      alert('Sync service unavailable. Check your internet connection or browser settings.');
+      alert('Sync service unavailable.');
       return;
     }
 
