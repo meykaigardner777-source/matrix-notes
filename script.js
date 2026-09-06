@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
-  // MATRIX CANVAS ANIMATION
+  // OPTIMIZED MATRIX CANVAS ANIMATION
   // ==========================================
   const canvas = document.getElementById('matrix');
   if (canvas) {
@@ -17,7 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let columns = Math.floor(canvas.width / fontSize);
     let drops = Array(columns).fill(1);
 
-    function drawMatrix() {
+    // Frame Throttling to 30 FPS to reduce CPU/GPU lag
+    let lastTime = 0;
+    const fpsInterval = 1000 / 30;
+
+    function drawMatrix(timestamp) {
+      requestAnimationFrame(drawMatrix);
+
+      const elapsed = timestamp - lastTime;
+      if (elapsed < fpsInterval) return;
+      lastTime = timestamp - (elapsed % fpsInterval);
+
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -35,12 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    setInterval(drawMatrix, 33);
+    requestAnimationFrame(drawMatrix);
 
+    // Debounced Resize handler to avoid lag during window resizing
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-      resizeCanvas();
-      columns = Math.floor(canvas.width / fontSize);
-      drops = Array(columns).fill(1);
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        resizeCanvas();
+        columns = Math.floor(canvas.width / fontSize);
+        drops = Array(columns).fill(1);
+      }, 100);
     });
   }
 
@@ -71,7 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderNotesList() {
     if (!notesList) return;
-    notesList.innerHTML = '';
+    
+    // Fast fragment DOM insertion to prevent browser reflow lag
+    const fragment = document.createDocumentFragment();
 
     if (notes.length === 0) {
       notesList.innerHTML = '<div style="color: #888; font-size: 13px; text-align: center; margin-top: 20px;">No notes yet</div>';
@@ -94,8 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         openNote(note.id);
       });
-      notesList.appendChild(item);
+      fragment.appendChild(item);
     });
+
+    notesList.innerHTML = '';
+    notesList.appendChild(fragment);
   }
 
   function openNote(id) {
@@ -166,17 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // PEER-TO-PEER SYNC LOGIC (WITH STUN SERVERS)
+  // PEER-TO-PEER SYNC LOGIC
   // ==========================================
   let peer = null;
   let activeConnection = null;
-  // Generate unique ID per device session
   const localPeerId = 'matrix-' + Math.floor(Math.random() * 899999 + 100000);
 
   function initPeer() {
     if (typeof Peer !== 'undefined' && !peer) {
       try {
-        // Pass Google STUN Servers to bypass local network/firewall NAT restrictions
         peer = new Peer(localPeerId, {
           config: {
             iceServers: [
@@ -187,10 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
-        peer.on('open', (id) => {
-          console.log('Peer Registered with ID:', id);
-        });
-
         peer.on('connection', (conn) => {
           activeConnection = conn;
           setupConnectionHandlers(conn);
@@ -198,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         peer.on('error', (err) => {
           console.error('PeerJS Error:', err);
-          alert('Sync Connection Error: ' + err.type);
         });
       } catch (err) {
         console.error('Failed to initialize PeerJS:', err);
