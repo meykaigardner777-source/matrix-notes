@@ -1,23 +1,56 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
-  // OPTIMIZED MATRIX CANVAS ANIMATION
+  // ULTRA-OPTIMIZED MATRIX CANVAS ANIMATION
   // ==========================================
   const canvas = document.getElementById('matrix');
   if (canvas) {
-    const ctx = canvas.getContext('2d');
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
+    const ctx = canvas.getContext('2d', { alpha: false });
 
     const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789=+-*';
     const fontSize = 16;
-    let columns = Math.floor(canvas.width / fontSize);
-    let drops = Array(columns).fill(1);
+    let columns = 0;
+    let drops = [];
 
-    // Frame Throttling to 30 FPS to reduce CPU/GPU lag
+    // Pre-render characters to an offscreen canvas for extreme performance
+    const charCache = document.createElement('canvas');
+    const charCtx = charCache.getContext('2d');
+    const charMap = new Map();
+
+    function prepareCharCache() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const scaledSize = fontSize * dpr;
+      
+      charCache.width = scaledSize * chars.length;
+      charCache.height = scaledSize;
+      
+      charCtx.fillStyle = '#aaaaaa';
+      charCtx.font = `${scaledSize}px monospace`;
+      charCtx.textBaseline = 'top';
+
+      for (let i = 0; i < chars.length; i++) {
+        const char = chars.charAt(i);
+        const x = i * scaledSize;
+        charCtx.fillText(char, x, 0);
+        charMap.set(char, x);
+      }
+    }
+    prepareCharCache();
+
+    function resizeCanvas() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      
+      columns = Math.floor(width / fontSize);
+      drops = new Array(columns).fill(1);
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
+    }
+    resizeCanvas();
+
+    // 30 FPS Frame Throttling
     let lastTime = 0;
     const fpsInterval = 1000 / 30;
 
@@ -28,15 +61,25 @@ document.addEventListener('DOMContentLoaded', () => {
       if (elapsed < fpsInterval) return;
       lastTime = timestamp - (elapsed % fpsInterval);
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      // Fast semi-transparent fade overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = '#aaaaaa';
-      ctx.font = fontSize + 'px monospace';
+      const charWidth = fontSize;
+      const charHeight = fontSize;
 
       for (let i = 0; i < drops.length; i++) {
-        const text = chars.charAt(Math.floor(Math.random() * chars.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        const char = chars.charAt(Math.floor(Math.random() * chars.length));
+        const sourceX = charMap.get(char);
+
+        // Blit pre-rendered character directly (Zero font layout processing)
+        if (sourceX !== undefined) {
+          ctx.drawImage(
+            charCache,
+            sourceX, 0, charHeight * 2, charHeight * 2,
+            i * fontSize, drops[i] * fontSize, charWidth, charHeight
+          );
+        }
 
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
@@ -47,16 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     requestAnimationFrame(drawMatrix);
 
-    // Debounced Resize handler to avoid lag during window resizing
     let resizeTimeout;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        resizeCanvas();
-        columns = Math.floor(canvas.width / fontSize);
-        drops = Array(columns).fill(1);
-      }, 100);
-    });
+      resizeTimeout = setTimeout(resizeCanvas, 150);
+    }, { passive: true });
   }
 
   // ==========================================
@@ -87,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderNotesList() {
     if (!notesList) return;
     
-    // Fast fragment DOM insertion to prevent browser reflow lag
     const fragment = document.createDocumentFragment();
 
     if (notes.length === 0) {
