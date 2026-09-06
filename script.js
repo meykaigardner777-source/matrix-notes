@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const noteBody = document.getElementById('note-body');
   const notesList = document.getElementById('notes-list');
 
-  // Helper to safely display text
   function escapeHTML(str) {
     if (!str) return '';
     return str.replace(/[&<>'"]/g, (tag) => ({
@@ -70,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }[tag] || tag));
   }
 
-  // Render notes in the sidebar
   function renderNotesList() {
     if (!notesList) return;
     notesList.innerHTML = '';
@@ -100,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Open note into editor
   function openNote(id) {
     const note = notes.find((n) => n.id === id);
     if (!note) return;
@@ -111,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNotesList();
   }
 
-  // Reset editor for new note
   function createNewNote() {
     currentNoteId = null;
     if (noteTitle) {
@@ -122,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNotesList();
   }
 
-  // Save current note
   function saveNote() {
     const titleVal = noteTitle ? noteTitle.value.trim() : '';
     const bodyVal = noteBody ? noteBody.value.trim() : '';
@@ -152,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
     broadcastSync();
   }
 
-  // Delete current note
   function deleteNote() {
     if (!currentNoteId) {
       if (noteTitle) noteTitle.value = '';
@@ -178,14 +172,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeConnection = null;
   const localPeerId = 'matrix-' + Math.floor(1000 + Math.random() * 9000);
 
-  if (typeof Peer !== 'undefined') {
-    peer = new Peer(localPeerId);
+  function initPeer() {
+    if (typeof Peer !== 'undefined' && !peer) {
+      try {
+        peer = new Peer(localPeerId);
 
-    peer.on('connection', (conn) => {
-      activeConnection = conn;
-      setupConnectionHandlers(conn);
-    });
+        peer.on('connection', (conn) => {
+          activeConnection = conn;
+          setupConnectionHandlers(conn);
+        });
+
+        peer.on('error', (err) => {
+          console.error('PeerJS Error:', err);
+        });
+      } catch (err) {
+        console.error('Failed to initialize PeerJS:', err);
+      }
+    }
   }
+
+  // Attempt initial peer connection setup
+  initPeer();
 
   function setupConnectionHandlers(conn) {
     conn.on('open', () => {
@@ -212,13 +219,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleSyncClick() {
+    // If PeerJS isn't loaded yet, try initializing again
+    if (!peer) {
+      initPeer();
+    }
+
+    if (!peer) {
+      alert('Sync service library is currently offline or blocked by browser settings. Please check network connection.');
+      return;
+    }
+
     if (activeConnection && activeConnection.open) {
       alert(`Connected to partner!\nYour Code: ${localPeerId}`);
       return;
     }
 
     const partnerCode = prompt(`Your Device Code: ${localPeerId}\n\nEnter Partner Code to Sync:`);
-    if (partnerCode && partnerCode.trim() !== '' && peer) {
+    if (partnerCode && partnerCode.trim() !== '') {
       const conn = peer.connect(partnerCode.trim());
       activeConnection = conn;
       setupConnectionHandlers(conn);
