@@ -108,7 +108,7 @@
     /* Editor Styling */
     .note-editor {
       flex: 1;
-      min-width: 0; /* Prevents flex children from pushing container off screen */
+      min-width: 0;
       background: rgba(15, 15, 15, 0.85);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
@@ -127,10 +127,17 @@
       width: 100%;
     }
 
+    /* Button Group with Equal 1/3 Widths */
     .button-group {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
+      width: 280px; /* Fixed container width so title has room */
+    }
+
+    .button-group > * {
+      flex: 1; /* Gives Sync, Save, and Delete equal 1/3 width */
+      width: 33.33%;
     }
 
     #note-title, #note-body {
@@ -154,16 +161,17 @@
       resize: none;
     }
 
-    /* Buttons */
-    .app-button, .save-button, .delete-button {
+    /* Buttons & Sync Input */
+    .app-button, .save-button, .delete-button, .sync-button {
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 8px 14px;
+      padding: 8px 6px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       white-space: nowrap;
+      text-align: center;
       transition: background-color 0.2s;
     }
 
@@ -192,6 +200,14 @@
       background-color: rgba(220, 50, 50, 1);
     }
 
+    .sync-button {
+      background-color: rgba(0, 120, 215, 0.85);
+    }
+
+    .sync-button:hover {
+      background-color: rgba(0, 120, 215, 1);
+    }
+
     /* Mobile Responsive Layout adjustments */
     @media (max-width: 600px) {
       .app-layout {
@@ -214,11 +230,6 @@
 
       .button-group {
         width: 100%;
-        justify-content: flex-end;
-      }
-
-      .save-button, .delete-button {
-        flex: 1;
       }
     }
   </style>
@@ -236,6 +247,7 @@
       <div class="editor-header">
         <input type="text" id="note-title" placeholder="Title" />
         <div class="button-group">
+          <button id="sync-note-btn" class="sync-button" title="Click to connect or view code">Sync</button>
           <button id="save-note-btn" class="save-button">Save</button>
           <button id="delete-note-btn" class="delete-button">Delete</button>
         </div>
@@ -244,6 +256,8 @@
     </main>
   </div>
 
+  <!-- Included PeerJS Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
   <script src="script.js"></script>
 
   <script>
