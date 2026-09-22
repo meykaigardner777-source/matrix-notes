@@ -368,3 +368,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (syncNoteBtn) syncNoteBtn.addEventListener('click', (e) => { e.preventDefault(); handleSyncClick(); });
 
   renderNotesList();
+});
