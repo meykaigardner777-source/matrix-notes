@@ -377,7 +377,7 @@
 
     .clear-btn-small, .erase-fab, .highlight-fab {
       padding: 8px 14px;
-      border-radius: 6px; /* Changed to square format */
+      border-radius: 6px; /* Square format */
       background: rgba(35, 35, 35, 0.95);
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.25);
@@ -518,7 +518,6 @@
       notes = [];
       const existingIds = new Set();
 
-      // 1. Try loading primary storage first
       try {
         const rawCurrent = localStorage.getItem(STORAGE_KEY);
         if (rawCurrent) {
@@ -536,7 +535,6 @@
         console.error('Error reading primary storage:', e);
       }
 
-      // 2. Scan and pull from legacy keys if they exist
       LEGACY_KEYS.forEach(oldKey => {
         const rawLegacy = localStorage.getItem(oldKey);
         if (rawLegacy) {
@@ -562,10 +560,8 @@
         }
       });
 
-      // Sort by recency
       notes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-      // Save consolidated array back to primary key to clear up future loads
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
       } catch (e) {
@@ -573,7 +569,6 @@
       }
     }
 
-    // Run loader immediately
     loadAndMigrateNotes();
 
     function setSyncStatus(text, resetAfter = 0, isError = false) {
@@ -599,7 +594,14 @@
       myCode = generate4DigitCode();
       const peerId = 'matrix-notes-v3-' + myCode;
 
-      peer = new Peer(peerId);
+      peer = new Peer(peerId, {
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      });
 
       peer.on('open', () => {
         console.log('Peer ID created successfully:', myCode);
