@@ -19,7 +19,7 @@
       width: 100%;
       height: 100dvh;
       overflow: hidden;
-      background-color: #000000;
+      background-color: #0d0d0d;
       color: #ffffff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
@@ -42,7 +42,7 @@
       z-index: 90;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease-in-out;
+      transition: opacity 0.3s ease;
     }
 
     .sidebar-overlay.active {
@@ -52,72 +52,44 @@
 
     .sidebar {
       position: fixed;
-      top: 55%;
-      left: 50%;
-      width: 95vw;
-      max-width: 700px;
-      height: 88dvh;
-      background: rgba(14, 14, 14, 0.94);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(1px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 10px;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 100dvh;
+      background: rgba(22, 22, 22, 0.94);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
       z-index: 100;
-      transform: translate(-50%, -50%) scale(0.85);
-      opacity: 0;
-      pointer-events: none;
-      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-in-out;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8);
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 5px 0 25px rgba(0, 0, 0, 0.7);
     }
 
     .sidebar.open {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-      pointer-events: auto;
+      transform: translateX(0);
     }
 
     .sidebar-header {
       display: flex;
-      gap: 8px;
+      justify-content: flex-end;
       align-items: center;
       padding-bottom: 8px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .search-notes-input {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 6px;
-      padding: 6px 10px;
-      color: #ffffff;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-    }
-
-    .search-notes-input::placeholder {
-      color: #666666;
-    }
-
-    .search-notes-input:focus {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-
     .close-sidebar-btn {
       background: transparent;
       border: none;
-      color: #c9c9c9;
+      color: #888888;
       font-size: 13px;
       font-weight: bold;
       cursor: pointer;
-      padding: 6px 10px;
-      flex-shrink: 0;
+      padding: 4px 8px;
     }
 
     .close-sidebar-btn:hover {
@@ -148,7 +120,7 @@
 
     .note-item {
       padding: 10px;
-      background: rgba(1, 1, 1, 0.05);
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       cursor: pointer;
@@ -186,10 +158,10 @@
     /* Main Layout */
     .app-layout {
       position: fixed;
-      top: 17px;
-      left: 0px;
-      right: 0px;
-      bottom: 0px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -199,14 +171,15 @@
     .note-editor {
       flex: 1;
       min-width: 0;
-      background: rgba(10, 10, 10, 0.88);
-      backdrop-filter: blur(5px);
+      background: rgba(20, 20, 20, 0.88);
+      backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 8px;
       padding: 14px;
       display: flex;
       flex-direction: column;
+      gap: 10px;
       position: relative;
     }
 
@@ -272,9 +245,8 @@
       position: relative;
       flex: 1;
       width: 100%;
-      height: calc(100% - 7px);
+      height: 100%;
       overflow: hidden;
-      margin-top: 7px;
     }
 
     #note-body {
@@ -310,7 +282,7 @@
     }
 
     /* Buttons */
-    .app-button, .sync-button, .save-button, .delete-button {
+    .app-button, .sync-button, .save-button, .delete-button, .tool-button {
       color: white;
       border: none;
       border-radius: 6px;
@@ -334,33 +306,38 @@
     .delete-button { background-color: rgba(210, 40, 40, 0.9); }
     .delete-button:hover { background-color: rgba(220, 50, 50, 1); }
 
-    /* Floating Bottom-Right Controls */
+    .tool-button {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      text-align: left;
+    }
+    .tool-button:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    /* Floating Bottom-Right Highlight Controls */
     .highlight-widget {
       position: fixed;
       bottom: 0px;
       right: 0px;
       z-index: 50;
       display: flex;
+      flex-direction: column;
       align-items: flex-end;
-      gap: 6px;
+      gap: 8px;
     }
 
-    /* Horizontal color palette positioned to sit neatly to the left of the Erase button */
     .color-picker-palette {
       display: none;
-      position: absolute;
-      bottom: 42px; /* Sits right above the bottom row, aligned with the Erase button */
-      right: 87px; 
       background: rgba(30, 30, 30, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(10px);
       border-radius: 8px;
-      padding: 6px 8px;
-      flex-direction: row;
-      gap: 6px;
+      padding: 6px 10px;
+      gap: 8px;
       align-items: center;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      white-space: nowrap;
     }
 
     .color-picker-palette.show {
@@ -388,24 +365,11 @@
     .widget-actions {
       display: flex;
       gap: 6px;
-      align-items: flex-end;
+      align-items: center;
     }
 
-    /* Vertical stacking column for expand-on-top buttons */
-    .expand-column {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-      position: relative;
-    }
-
-    /* Standardized action buttons with absolute lockdown on position/elevation/sizing */
-    .clear-btn-small, .erase-fab, .list-fab, .pen-fab, .highlight-fab {
-      height: 36px;
-      min-height: 36px;
-      max-height: 36px;
-      padding: 0 14px;
+    .clear-btn-small, .erase-fab, .highlight-fab {
+      padding: 8px 14px;
       border-radius: 6px;
       background: rgba(35, 35, 35, 0.95);
       color: #ffffff;
@@ -417,17 +381,13 @@
       justify-content: center;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-      transform: none !important;
-      scale: 1 !important;
-      flex-shrink: 0;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
     }
 
     .clear-btn-small {
       display: none;
       background: rgba(200, 40, 40, 0.9);
       border-color: rgba(255, 100, 100, 0.4);
-      width: 100%;
     }
 
     .clear-btn-small.show {
@@ -436,28 +396,21 @@
 
     .erase-fab {
       display: none;
-      width: 100%;
     }
 
     .erase-fab.show {
       display: flex;
     }
 
-    /* Active styling without box model changes or vertical layout shifts */
     .erase-fab.is-active {
       background: #ff4d4d;
       color: #ffffff;
       border-color: #ffffff;
       box-shadow: 0 0 14px rgba(255, 77, 77, 0.8);
-      transform: none !important;
     }
 
-    .pen-fab.is-active {
-      background: #ffffff;
-      color: #000000;
-      border-color: #ffffff;
-      box-shadow: 0 0 14px rgba(255, 255, 255, 0.8);
-      transform: none !important;
+    .clear-btn-small:hover, .erase-fab:hover, .highlight-fab:hover {
+      transform: scale(1.03);
     }
 
     @media (max-width: 600px) {
@@ -475,13 +428,13 @@
   <!-- Left Sidebar Drawer -->
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
-      <input type="text" id="search-notes-input" class="search-notes-input" placeholder="Search titles & content..." oninput="renderNotesList()" />
       <button class="close-sidebar-btn" onclick="closeSidebar()">Close</button>
     </div>
 
     <div class="sidebar-actions">
       <button id="new-note-btn" type="button" class="app-button" onclick="handleNewNote()">+ New Note</button>
       <button id="sync-note-btn" type="button" class="sync-button" onclick="handleSync()">Sync</button>
+      <button id="numbered-list-btn" type="button" class="tool-button" onclick="handleNumberedList()">Numbered List</button>
     </div>
 
     <div class="notes-list-header">Saved Notes</div>
@@ -503,27 +456,20 @@
         <textarea id="note-body" placeholder="Start typing..."></textarea>
         <canvas id="highlight-canvas"></canvas>
 
-        <!-- Floating Bottom-Right Controls -->
+        <!-- Floating Bottom-Right Highlight Controls -->
         <div class="highlight-widget">
-          <div class="widget-actions">
-            <!-- Horizontal color palette positioned directly on top of the Erase button -->
-            <div id="color-palette" class="color-picker-palette">
-              <div class="color-swatch active" style="background: #ffd700;" onclick="setHighlightColor('#ffd700', this)" title="Yellow"></div>
-              <div class="color-swatch" style="background: #00ff66;" onclick="setHighlightColor('#00ff66', this)" title="Green"></div>
-              <div class="color-swatch" style="background: #00e5ff;" onclick="setHighlightColor('#00e5ff', this)" title="Cyan"></div>
-              <div class="color-swatch" style="background: #ff007f;" onclick="setHighlightColor('#ff007f', this)" title="Pink"></div>
-              <div class="color-swatch" style="background: #ff9100;" onclick="setHighlightColor('#ff9100', this)" title="Orange"></div>
-            </div>
+          <div id="color-palette" class="color-picker-palette">
+            <div class="color-swatch active" style="background: #ffd700;" onclick="setHighlightColor('#ffd700', this)" title="Yellow"></div>
+            <div class="color-swatch" style="background: #00ff66;" onclick="setHighlightColor('#00ff66', this)" title="Green"></div>
+            <div class="color-swatch" style="background: #00e5ff;" onclick="setHighlightColor('#00e5ff', this)" title="Cyan"></div>
+            <div class="color-swatch" style="background: #ff007f;" onclick="setHighlightColor('#ff007f', this)" title="Pink"></div>
+            <div class="color-swatch" style="background: #ff9100;" onclick="setHighlightColor('#ff9100', this)" title="Orange"></div>
+          </div>
 
-            <button id="numbered-list-btn" type="button" class="list-fab" onclick="handleNumberedList()" title="Toggle Numbered List">List</button>
-            <button id="pen-btn" type="button" class="pen-fab" onclick="handleTogglePen()" title="Toggle Pen Mode">Pen</button>
-            
-            <!-- Expandable column that pushes Erase and Clear on top of the active drawing button -->
-            <div class="expand-column" id="expand-column">
-              <button id="clear-highlight-btn" type="button" class="clear-btn-small" onclick="handleClearHighlight()" title="Clear All">Clear</button>
-              <button id="erase-highlight-btn" type="button" class="erase-fab" onclick="handleToggleEraser()" title="Erase">Erase</button>
-              <button id="toggle-highlight-btn" type="button" class="highlight-fab" onclick="handleToggleHighlight()" title="Toggle Highlight Mode">Highlight</button>
-            </div>
+          <div class="widget-actions">
+            <button id="clear-highlight-btn" type="button" class="clear-btn-small" onclick="handleClearHighlight()" title="Clear All Highlights">Clear</button>
+            <button id="erase-highlight-btn" type="button" class="erase-fab" onclick="handleToggleEraser()" title="Erase Highlight Sections">Erase</button>
+            <button id="toggle-highlight-btn" type="button" class="highlight-fab" onclick="handleToggleHighlight()" title="Toggle Highlight Mode">Highlight</button>
           </div>
         </div>
       </div>
@@ -531,8 +477,9 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'matrix_notes_v2';
-    const LEGACY_KEYS = ['matrix_notes', 'notes', 'matrix_notes_v1', 'matrixNotes'];
+    // Global Application State & Storage Keys
+    const STORAGE_KEY = 'matrix_notes_v3';
+    const LEGACY_KEYS = ['matrix_notes_v2', 'matrix_notes', 'notes', 'matrix_notes_v1', 'matrixNotes'];
     
     let notes = [];
     let currentNoteId = null;
@@ -540,10 +487,10 @@
     let currentStroke = null;
     let isHighlightingMode = false;
     let isEraserMode = false;
-    let isPenMode = false;
     let isDrawing = false;
     let currentHighlightColor = '#ffd700';
 
+    // PeerJS Networking State
     let peer = null;
     let myCode = null;
     let activeConnection = null;
@@ -558,6 +505,7 @@
       return code;
     }
 
+    // Robust Storage & Migration Loader
     function loadAndMigrateNotes() {
       notes = [];
       const existingIds = new Set();
@@ -598,7 +546,9 @@
                 }
               });
             }
-          } catch (err) {}
+          } catch (err) {
+            console.warn(`Skipping unparseable key "${oldKey}":`, err);
+          }
         }
       });
 
@@ -606,7 +556,9 @@
 
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-      } catch (e) {}
+      } catch (e) {
+        console.error('Could not write consolidated notes:', e);
+      }
     }
 
     loadAndMigrateNotes();
@@ -614,6 +566,7 @@
     function setSyncStatus(text, resetAfter = 0, isError = false) {
       const btn = document.getElementById('sync-note-btn');
       if (!btn) return;
+
       if (syncTimeout) clearTimeout(syncTimeout);
 
       btn.textContent = text;
@@ -631,7 +584,7 @@
       if (typeof Peer === 'undefined') return;
 
       myCode = generate4DigitCode();
-      const peerId = 'matrix-notes-v2-' + myCode;
+      const peerId = 'matrix-notes-v3-' + myCode;
 
       peer = new Peer(peerId, {
         config: {
@@ -642,11 +595,16 @@
         }
       });
 
+      peer.on('open', () => {
+        console.log('Peer ID created successfully:', myCode);
+      });
+
       peer.on('connection', (conn) => {
         setupP2PConnection(conn);
       });
 
-      peer.on('error', () => {
+      peer.on('error', (err) => {
+        console.error('PeerJS error:', err);
         setSyncStatus('Failed!', 3000, true);
       });
     }
@@ -736,7 +694,7 @@
         }
 
         setSyncStatus('Connecting....');
-        const targetPeerId = 'matrix-notes-v2-' + cleanCode;
+        const targetPeerId = 'matrix-notes-v3-' + cleanCode;
         const conn = peer.connect(targetPeerId);
 
         const connTimeout = setTimeout(() => {
@@ -763,27 +721,20 @@
       document.getElementById('sidebar-overlay').classList.remove('active');
     };
 
-    function updateButtonStates() {
-      const highlightBtn = document.getElementById('toggle-highlight-btn');
-      const penBtn = document.getElementById('pen-btn');
-
-      if (!highlightBtn || !penBtn) return;
-
-      highlightBtn.style.backgroundColor = '';
-      highlightBtn.style.color = '';
-      highlightBtn.style.borderColor = '';
-      highlightBtn.style.boxShadow = '';
-      penBtn.classList.remove('is-active');
+    function updateHighlightButtonGlow() {
+      const btn = document.getElementById('toggle-highlight-btn');
+      if (!btn) return;
 
       if (isHighlightingMode && !isEraserMode) {
-        highlightBtn.style.backgroundColor = currentHighlightColor;
-        highlightBtn.style.color = '#000000';
-        highlightBtn.style.borderColor = '#ffffff';
-        highlightBtn.style.boxShadow = `0 0 16px ${currentHighlightColor}`;
-      }
-      
-      if (isPenMode && !isEraserMode) {
-        penBtn.classList.add('is-active');
+        btn.style.backgroundColor = currentHighlightColor;
+        btn.style.color = '#000000';
+        btn.style.borderColor = '#ffffff';
+        btn.style.boxShadow = `0 0 16px ${currentHighlightColor}`;
+      } else {
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.style.boxShadow = '';
       }
     }
 
@@ -795,7 +746,7 @@
       if (eraseBtn) eraseBtn.classList.remove('is-active');
 
       const canvas = document.getElementById('highlight-canvas');
-      if (canvas && (isHighlightingMode || isPenMode)) {
+      if (canvas && isHighlightingMode) {
         canvas.classList.add('drawing-mode');
         canvas.classList.remove('erasing-mode');
       }
@@ -804,7 +755,7 @@
       swatches.forEach(s => s.classList.remove('active'));
       if (element) element.classList.add('active');
 
-      updateButtonStates();
+      updateHighlightButtonGlow();
     };
 
     window.handleNewNote = function() {
@@ -845,7 +796,9 @@
 
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-      } catch (e) {}
+      } catch (e) {
+        console.error('Storage write error:', e);
+      }
 
       renderNotesList();
       flashButtonText('save-note-btn', 'Saved!', 'Save');
@@ -886,9 +839,7 @@
       isHighlightingMode = !isHighlightingMode;
 
       if (isHighlightingMode) {
-        isPenMode = false;
         isEraserMode = false;
-        document.getElementById('pen-btn').classList.remove('is-active');
         canvas.classList.add('drawing-mode');
         canvas.classList.remove('erasing-mode');
         eraseBtn.classList.remove('is-active');
@@ -897,45 +848,15 @@
         eraseBtn.classList.add('show');
       } else {
         isEraserMode = false;
-        canvas.classList.remove('drawing-mode', 'erasing-mode');
-        eraseBtn.classList.remove('is-active');
-        palette.classList.remove('show');
-        clearBtn.classList.remove('show');
-        eraseBtn.classList.remove('show');
-      }
-
-      updateButtonStates();
-    };
-
-    window.handleTogglePen = function() {
-      const penBtn = document.getElementById('pen-btn');
-      const eraseBtn = document.getElementById('erase-highlight-btn');
-      const canvas = document.getElementById('highlight-canvas');
-      const palette = document.getElementById('color-palette');
-      const clearBtn = document.getElementById('clear-highlight-btn');
-
-      isPenMode = !isPenMode;
-
-      if (isPenMode) {
-        isHighlightingMode = false;
-        isEraserMode = false;
-        eraseBtn.classList.remove('is-active');
-        penBtn.classList.add('is-active');
-        canvas.classList.add('drawing-mode');
+        canvas.classList.remove('drawing-mode');
         canvas.classList.remove('erasing-mode');
-        palette.classList.add('show');
-        clearBtn.classList.add('show');
-        eraseBtn.classList.add('show');
-      } else {
-        isPenMode = false;
-        penBtn.classList.remove('is-active');
-        canvas.classList.remove('drawing-mode', 'erasing-mode');
+        eraseBtn.classList.remove('is-active');
         palette.classList.remove('show');
         clearBtn.classList.remove('show');
         eraseBtn.classList.remove('show');
       }
 
-      updateButtonStates();
+      updateHighlightButtonGlow();
     };
 
     window.handleToggleEraser = function() {
@@ -943,19 +864,18 @@
       const canvas = document.getElementById('highlight-canvas');
 
       isEraserMode = !isEraserMode;
+
       if (isEraserMode) {
         canvas.classList.remove('drawing-mode');
         canvas.classList.add('erasing-mode');
         eraseBtn.classList.add('is-active');
       } else {
-        if (isHighlightingMode || isPenMode) {
-          canvas.classList.add('drawing-mode');
-        }
+        canvas.classList.add('drawing-mode');
         canvas.classList.remove('erasing-mode');
         eraseBtn.classList.remove('is-active');
       }
 
-      updateButtonStates();
+      updateHighlightButtonGlow();
     };
 
     window.handleClearHighlight = function() {
@@ -971,29 +891,22 @@
       if (!text.length) {
         body.value = '1: ';
         body.focus();
+        closeSidebar();
         return;
       }
 
+      let count = 1;
       const lines = text.split('\n');
-      const nonEmptyLines = lines.filter(l => l.trim().length > 0);
-      const allNumbered = nonEmptyLines.length > 0 && nonEmptyLines.every(l => /^\d{1,3}:\s*/.test(l));
+      const numbered = lines.map(line => {
+        if (count <= 999) {
+          return `${count++}: ${line}`;
+        }
+        return line;
+      });
 
-      if (allNumbered) {
-        const cleaned = lines.map(line => line.replace(/^\d{1,3}:\s*/, ''));
-        body.value = cleaned.join('\n');
-      } else {
-        let count = 1;
-        const numbered = lines.map(line => {
-          if (!line.trim()) return line;
-          const cleanLine = line.replace(/^\d{1,3}:\s*/, '');
-          return `${count++}: ${cleanLine}`;
-        });
-        body.value = numbered.join('\n');
-      }
-
+      body.value = numbered.join('\n');
       body.focus();
-      window.handleSaveNote();
-      flashButtonText('numbered-list-btn', 'Done', 'List');
+      closeSidebar();
     };
 
     function flashButtonText(btnId, tempText, originalText) {
@@ -1007,25 +920,15 @@
 
     function renderNotesList() {
       const listEl = document.getElementById('notes-list');
-      const searchInput = document.getElementById('search-notes-input');
       if (!listEl) return;
       listEl.innerHTML = '';
 
-      const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-      const filteredNotes = notes.filter(note => {
-        if (!query) return true;
-        const titleMatch = (note.title || '').toLowerCase().includes(query);
-        const bodyMatch = (note.body || '').toLowerCase().includes(query);
-        return titleMatch || bodyMatch;
-      });
-
-      if (filteredNotes.length === 0) {
-        listEl.innerHTML = '<div style="color:#666;font-size:12px;text-align:center;padding:10px;">No notes found</div>';
+      if (notes.length === 0) {
+        listEl.innerHTML = '<div style="color:#666;font-size:12px;text-align:center;padding:10px;">No notes saved</div>';
         return;
       }
 
-      filteredNotes.forEach(note => {
+      notes.forEach(note => {
         const item = document.createElement('div');
         item.className = 'note-item' + (note.id === currentNoteId ? ' active' : '');
         item.innerHTML = `
@@ -1084,11 +987,6 @@
           hlCtx.globalAlpha = 1.0;
           hlCtx.strokeStyle = 'rgba(0,0,0,1)';
           hlCtx.lineWidth = 26;
-        } else if (strokeObj.isPen) {
-          hlCtx.globalCompositeOperation = 'source-over';
-          hlCtx.globalAlpha = 1.0;
-          hlCtx.strokeStyle = strokeObj.color || '#ffd700';
-          hlCtx.lineWidth = 3;
         } else {
           hlCtx.globalCompositeOperation = 'source-over';
           hlCtx.globalAlpha = 0.45;
@@ -1129,7 +1027,7 @@
       const hlCanvas = document.getElementById('highlight-canvas');
 
       function startStroke(e) {
-        if (!isHighlightingMode && !isPenMode) return;
+        if (!isHighlightingMode) return;
         if (e.cancelable) e.preventDefault();
         isDrawing = true;
 
@@ -1137,7 +1035,6 @@
         currentStroke = {
           color: currentHighlightColor,
           isEraser: isEraserMode,
-          isPen: isPenMode,
           points: [pt]
         };
         strokes.push(currentStroke);
@@ -1145,7 +1042,7 @@
       }
 
       function moveStroke(e) {
-        if (!isDrawing || (!isHighlightingMode && !isPenMode)) return;
+        if (!isDrawing || !isHighlightingMode) return;
         if (e.cancelable) e.preventDefault();
         const pt = getNormalizedCoords(e);
         currentStroke.points.push(pt);
@@ -1235,7 +1132,6 @@
         resizeHighlightCanvas();
       });
 
-      resizeMatrix();
       resizeHighlightCanvas();
       renderNotesList();
     });
