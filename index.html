@@ -345,11 +345,10 @@
       gap: 6px;
     }
 
-    /* Horizontal color palette positioned to sit neatly to the left of the Erase button */
     .color-picker-palette {
       display: none;
       position: absolute;
-      bottom: 42px; /* Sits right above the bottom row, aligned with the Erase button */
+      bottom: 42px;
       right: 87px; 
       background: rgba(30, 30, 30, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -391,7 +390,6 @@
       align-items: flex-end;
     }
 
-    /* Vertical stacking column for expand-on-top buttons */
     .expand-column {
       display: flex;
       flex-direction: column;
@@ -400,7 +398,6 @@
       position: relative;
     }
 
-    /* Standardized action buttons with absolute lockdown on position/elevation/sizing */
     .clear-btn-small, .erase-fab, .list-fab, .pen-fab, .highlight-fab {
       height: 36px;
       min-height: 36px;
@@ -443,7 +440,6 @@
       display: flex;
     }
 
-    /* Active styling without box model changes or vertical layout shifts */
     .erase-fab.is-active {
       background: #ff4d4d;
       color: #ffffff;
@@ -506,7 +502,7 @@
         <!-- Floating Bottom-Right Controls -->
         <div class="highlight-widget">
           <div class="widget-actions">
-            <!-- Horizontal color palette positioned directly on top of the Erase button -->
+            <!-- Horizontal color palette -->
             <div id="color-palette" class="color-picker-palette">
               <div class="color-swatch active" style="background: #ffd700;" onclick="setHighlightColor('#ffd700', this)" title="Yellow"></div>
               <div class="color-swatch" style="background: #00ff66;" onclick="setHighlightColor('#00ff66', this)" title="Green"></div>
@@ -518,7 +514,6 @@
             <button id="numbered-list-btn" type="button" class="list-fab" onclick="handleNumberedList()" title="Toggle Numbered List">List</button>
             <button id="pen-btn" type="button" class="pen-fab" onclick="handleTogglePen()" title="Toggle Pen Mode">Pen</button>
             
-            <!-- Expandable column that pushes Erase and Clear on top of the active drawing button -->
             <div class="expand-column" id="expand-column">
               <button id="clear-highlight-btn" type="button" class="clear-btn-small" onclick="handleClearHighlight()" title="Clear All">Clear</button>
               <button id="erase-highlight-btn" type="button" class="erase-fab" onclick="handleToggleEraser()" title="Erase">Erase</button>
@@ -531,8 +526,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'matrix_notes_v2';
-    const LEGACY_KEYS = ['matrix_notes_v3', 'matrix_notes', 'notes', 'matrix_notes_v1', 'matrixNotes'];
+    const STORAGE_KEY = 'matrix_notes_v3';
+    const LEGACY_KEYS = ['matrix_notes_v2', 'matrix_notes', 'notes', 'matrix_notes_v1', 'matrixNotes'];
     
     let notes = [];
     let currentNoteId = null;
@@ -631,7 +626,7 @@
       if (typeof Peer === 'undefined') return;
 
       myCode = generate4DigitCode();
-      const peerId = 'matrix-notes-v2-' + myCode;
+      const peerId = 'matrix-notes-v3-' + myCode;
 
       peer = new Peer(peerId, {
         config: {
@@ -736,7 +731,7 @@
         }
 
         setSyncStatus('Connecting....');
-        const targetPeerId = 'matrix-notes-v2-' + cleanCode;
+        const targetPeerId = 'matrix-notes-v3-' + cleanCode;
         const conn = peer.connect(targetPeerId);
 
         const connTimeout = setTimeout(() => {
