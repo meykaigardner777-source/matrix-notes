@@ -527,7 +527,16 @@
 
   <script>
     const STORAGE_KEY = 'matrix_notes_v3';
-    const LEGACY_KEYS = ['matrix_notes_v2', 'matrix_notes', 'notes', 'matrix_notes_v1', 'matrixNotes'];
+    // EVERY single legacy storage key your old versions might have used on your phone
+    const LEGACY_KEYS = [
+      'matrix_notes_v2', 
+      'matrix_notes_v1', 
+      'matrix_notes', 
+      'my_notes', 
+      'notes', 
+      'matrixNotes',
+      'matrix-notes'
+    ];
     
     let notes = [];
     let currentNoteId = null;
@@ -557,23 +566,7 @@
       notes = [];
       const existingIds = new Set();
 
-      try {
-        const rawCurrent = localStorage.getItem(STORAGE_KEY);
-        if (rawCurrent) {
-          const parsed = JSON.parse(rawCurrent);
-          if (Array.isArray(parsed)) {
-            parsed.forEach(n => {
-              if (n && n.id) {
-                notes.push(n);
-                existingIds.add(n.id);
-              }
-            });
-          }
-        }
-      } catch (e) {
-        console.error('Error reading primary storage:', e);
-      }
-
+      // STEP 1: Auto-sweep ALL old localstorage keys and merge them into v3 automatically
       LEGACY_KEYS.forEach(oldKey => {
         const rawLegacy = localStorage.getItem(oldKey);
         if (rawLegacy) {
@@ -597,8 +590,31 @@
         }
       });
 
+      // STEP 2: Load current v3 notes and merge them in too
+      try {
+        const rawCurrent = localStorage.getItem(STORAGE_KEY);
+        if (rawCurrent) {
+          const parsed = JSON.parse(rawCurrent);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(n => {
+              if (n && n.id && !existingIds.has(n.id)) {
+                notes.push(n);
+                existingIds.add(n.id);
+              } else if (n && n.id) {
+                // If ID exists in both, keep the newest updated one
+                const idx = notes.findIndex(existing => existing.id === n.id);
+                if (idx >= 0 && (n.updatedAt || 0) > (notes[idx].updatedAt || 0)) {
+                  notes[idx] = n;
+                }
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
       notes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
+      // Save the fully consolidated list right back into v3 storage automatically
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
       } catch (e) {}
