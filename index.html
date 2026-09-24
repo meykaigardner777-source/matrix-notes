@@ -527,7 +527,7 @@
 
   <script>
     const STORAGE_KEY = 'matrix_notes_v3';
-    // EVERY single legacy storage key your old versions might have used on your phone
+    const MIGRATION_FLAG = 'matrix_notes_migrated_v3';
     const LEGACY_KEYS = [
       'matrix_notes_v2', 
       'matrix_notes_v1', 
@@ -566,31 +566,36 @@
       notes = [];
       const existingIds = new Set();
 
-      // STEP 1: Auto-sweep ALL old localstorage keys and merge them into v3 automatically
-      LEGACY_KEYS.forEach(oldKey => {
-        const rawLegacy = localStorage.getItem(oldKey);
-        if (rawLegacy) {
-          try {
-            const legacyNotes = JSON.parse(rawLegacy);
-            if (Array.isArray(legacyNotes)) {
-              legacyNotes.forEach(note => {
-                if (note && note.id && !existingIds.has(note.id)) {
-                  notes.push({
-                    id: note.id,
-                    title: note.title || 'Untitled Note',
-                    body: note.body || note.content || note.text || '',
-                    strokes: note.strokes || [],
-                    updatedAt: note.updatedAt || note.timestamp || Date.now()
-                  });
-                  existingIds.add(note.id);
-                }
-              });
-            }
-          } catch (err) {}
-        }
-      });
+      // STEP 1: If migration hasn't happened yet, pull legacy data ONCE
+      if (!localStorage.getItem(MIGRATION_FLAG)) {
+        LEGACY_KEYS.forEach(oldKey => {
+          const rawLegacy = localStorage.getItem(oldKey);
+          if (rawLegacy) {
+            try {
+              const legacyNotes = JSON.parse(rawLegacy);
+              if (Array.isArray(legacyNotes)) {
+                legacyNotes.forEach(note => {
+                  if (note && note.id && !existingIds.has(note.id)) {
+                    notes.push({
+                      id: note.id,
+                      title: note.title || 'Untitled Note',
+                      body: note.body || note.content || note.text || '',
+                      strokes: note.strokes || [],
+                      updatedAt: note.updatedAt || note.timestamp || Date.now()
+                    });
+                    existingIds.add(note.id);
+                  }
+                });
+              }
+            } catch (err) {}
+            // Remove old key so it never resurrects deleted notes again
+            localStorage.removeItem(oldKey);
+          }
+        });
+        localStorage.setItem(MIGRATION_FLAG, 'true');
+      }
 
-      // STEP 2: Load current v3 notes and merge them in too
+      // STEP 2: Load current v3 notes normally
       try {
         const rawCurrent = localStorage.getItem(STORAGE_KEY);
         if (rawCurrent) {
@@ -600,12 +605,6 @@
               if (n && n.id && !existingIds.has(n.id)) {
                 notes.push(n);
                 existingIds.add(n.id);
-              } else if (n && n.id) {
-                // If ID exists in both, keep the newest updated one
-                const idx = notes.findIndex(existing => existing.id === n.id);
-                if (idx >= 0 && (n.updatedAt || 0) > (notes[idx].updatedAt || 0)) {
-                  notes[idx] = n;
-                }
               }
             });
           }
@@ -614,7 +613,6 @@
 
       notes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-      // Save the fully consolidated list right back into v3 storage automatically
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
       } catch (e) {}
